@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<body>
+ 
+<head>
+    <title>COVID Traffic Report</title>
+
+    <style type="text/css">
+        #tdot img{ 
+        position:absolute; 
+        top:25px; 
+        right:0px;
+        width: 250px;
+        height: 130px;}
+
+        #cee img{ 
+        position:absolute; 
+        top:25px; 
+        right:255px;
+        width: 125px;
+        height: 125px;}
+
+    </style>
+</head>
+
+
+<h2>Monitor Traffic Change for Major Cities in Tennessee amid Pandemic</h2>
+<p>Date/Time: <span id="datetime"></span></p>
+
+
+<div id="tdot"> 
+    <img src="TN_TDOT-ColorPMS.png"> 
+</div> 
+ 
+<div id="cee"> 
+    <img src="utk_cee.png"> 
+</div> 
+
+<p>Yangsong Gu, Ph.D. student </p> 
+<span style="color:blue"><u>ygu17@vols.utk.edu</u></span>
+ 
+<p>&copy; Department of Civil and Environmental Engineering, University of Tennessee, Knoxville</p>
+
+<embed src = "/TnCovidTrafficReport.pdf" height="1080px" width="100%"></embed>
+ <script>
+var dt = new Date();
+document.getElementById("datetime").innerHTML = dt.toLocaleString();
+</script>
+  
+</body>
+</html>
+
+
+
+
