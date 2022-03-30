@@ -4,7 +4,8 @@
  
 <head>
     <title>COVID Traffic Report</title>
-
+    <script src="https://cdn.plot.ly/plotly-2.9.0.min.js"></script>
+    <script type="text/javascript" src="data.js"></script>
     <style type="text/css">
         #tdot img{ 
         position:absolute; 
@@ -18,7 +19,26 @@
         top:25px; 
         right:255px;
         width: 125px;
-        height: 125px;}
+        height: 125px;
+    	float:left; }
+
+		.center {
+		margin: auto;
+		width: 60%;
+		border: 5px solid #FFFF00;
+		padding: 10px;
+		}
+
+        #table {
+        position:absolute;
+        right:10px;
+        top:20px;
+        min-width: 20%;
+        height:40%;
+        text-align: center;
+        overflow:hidden;
+        float:left; 
+        }
 
     </style>
 </head>
@@ -28,24 +48,90 @@
 <p>Date/Time: <span id="datetime"></span></p>
 
 
-<div id="tdot"> 
-    <img src="TN_TDOT-ColorPMS.png"> 
-</div> 
- 
-<div id="cee"> 
-    <img src="utk_cee.png"> 
-</div> 
+<!-- <div id="tdot">  -->
+    <!-- <img src="TN_TDOT-ColorPMS.png">  -->
+<!-- </div>  -->
+
+<!-- <div id="cee">  -->
+    <!-- <img src="utk_cee.png">  -->
+<!-- </div>  -->
+
+<div id="table">Percent of Traffic Change, Summary Table</div>
+
 
 <p>Yangsong Gu, Ph.D. student </p> 
 <span style="color:blue"><u>ygu17@vols.utk.edu</u></span>
  
 <p>&copy; Department of Civil and Environmental Engineering, University of Tennessee, Knoxville</p>
 
-<embed src = "/TnCovidTrafficReport.pdf" height="1080px" width="100%"></embed>
+
+<embed src = "/TnCovidTrafficReport.pdf" height="1080px" width="100%" style="position:absolute;margin-top: 20px"></embed>
  <script>
 var dt = new Date();
 document.getElementById("datetime").innerHTML = dt.toLocaleString();
 </script>
+
+<script>
+        var data = [
+          {
+            z: change,
+            x: ['Yesterday', 'One-day change', 'One-week change'],
+            y: ['Nashville', 'Memphis', 'Knoxville','Chattanooga','Overall'],
+            type: 'heatmap',
+            textfont: {
+            family: 'Times New Roman',
+            size: 24,
+          },
+          showscale: false,
+          colorscale:'Jet',
+          }
+        ];
+
+        var X = ['Yesterday', 'One-day change', 'One-week change',
+                'Yesterday', 'One-day change', 'One-week change',
+                'Yesterday', 'One-day change', 'One-week change',
+                'Yesterday', 'One-day change', 'One-week change',
+                'Yesterday', 'One-day change', 'One-week change'];
+
+        var Y = ['Nashville','Nashville','Nashville',
+                'Memphis', 'Memphis', 'Memphis',
+                'Knoxville','Knoxville','Knoxville',
+                'Chattanooga','Chattanooga','Chattanooga',
+                'Overall','Overall','Overall'];
+
+        var strChange = change.flat()
+        var text = {
+            x: X,
+            y: Y,
+            text: strChange,
+            type: 'scatter',
+            textposition: 'center',
+            mode: 'text',
+            textfont: {
+            family: 'Times New Roman',
+            size: 18,
+            color: '#0d0d0d',
+            showlegend: false,
+            texttemplate: ",.0%",
+          },
+        };
+        var layout ={
+              autosize: false,
+              width: 600,
+              height: 200,
+              margin: {
+                l: 100,
+                r: 20,
+                b: 40,
+                t: 10,
+                pad: 4
+                      },
+                showlegend:false,}
+        var data_all = [data[0], text];
+        // var layout = {showlegend: false};
+        TESTER = document.getElementById('table');
+        Plotly.newPlot(TESTER, data_all, layout);
+    </script>
   
 </body>
 </html>
