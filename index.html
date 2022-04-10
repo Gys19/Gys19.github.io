@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body>
- 
+ <!-- update no 4/10/2022, change the color for heatmap -->
 <head>
     <title>COVID Traffic Report</title>
     <script src="https://cdn.plot.ly/plotly-2.9.0.min.js"></script>
@@ -32,7 +32,7 @@
         #table {
         position:absolute;
         right:10px;
-        top:20px;
+        top:5px;
         min-width: 20%;
         height:40%;
         text-align: center;
@@ -72,18 +72,22 @@ document.getElementById("datetime").innerHTML = dt.toLocaleString();
 </script>
 
 <script>
+        var colorscaleValue = [[0,'#FFABAB'],
+                              [.5, '#FCFCFF'],
+                              [1, '#80D8A8']
+                              ];      
         var data = [
           {
             z: change,
             x: ['Yesterday', 'One-day change', 'One-week change'],
             y: ['Nashville', 'Memphis', 'Knoxville','Chattanooga','Overall'],
             type: 'heatmap',
+            colorscale: colorscaleValue,
             textfont: {
             family: 'Times New Roman',
             size: 24,
-          },
+                },
           showscale: false,
-          colorscale:'Jet',
           }
         ];
 
@@ -100,6 +104,7 @@ document.getElementById("datetime").innerHTML = dt.toLocaleString();
                 'Overall','Overall','Overall'];
 
         var strChange = change.flat()
+
         var text = {
             x: X,
             y: Y,
@@ -126,7 +131,21 @@ document.getElementById("datetime").innerHTML = dt.toLocaleString();
                 t: 10,
                 pad: 4
                       },
-                showlegend:false,}
+                showlegend:false,
+                xaxis: {
+                tickfont:{
+                    family: 'Times New Romane',
+                    size: 12,
+                    color: '#0d0d0d'
+                    }},
+                yaxis: {
+                tickfont:{
+                    family: 'Times New Romane',
+                    size: 12,
+                    color: '#0d0d0d'
+                    }},
+
+                };
         var data_all = [data[0], text];
         // var layout = {showlegend: false};
         TESTER = document.getElementById('table');
