@@ -1,0 +1,399 @@
+
+<head>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+
+	<div id='showtime' style="width: 60%; height: 10%;text-align: center;margin:auto;">
+		
+		<span style="font-size: 40px;">dada</span>
+
+	</div>
+  <div id="change" style="width: 60%; height: 20%;text-align: center;margin:auto;"></div>
+  <div id="change2yes" style="width: 60%; height: 20%;text-align: center;margin:auto;"></div>
+  <div id="dailyChange" style="width: 100%; height: 50%;"></div>
+  <div id="heatmap" style="width: 100%; height: 50%;"> </div>
+  <select name="cities" id="cities" style="margin:auto;align-content: center;">
+    <option value="Knoxville" selected>Knoxville</option>
+    <option value="Chattanooga">Chattanooga</option>
+    <option value="Nashville">Nashville</option>
+    <option value="Memphis">Memphis</option>
+    <option value="Overall">Overall</option>
+  </select>
+  <div id="hourly" style = "width:100%;height: 50%;"></div>
+
+  <script type="text/javascript">
+  	
+  	var today = new Date()
+  	var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  	var text = document.getElementById('showtime')
+  	text.innerHTML=  '<span style="color:grey">Today:</span> ' + today.toLocaleDateString("en-US", options)
+  	text.style.fontSize=40
+
+  </script>
+  <script type="text/javascript">
+
+  	var today = new Date()
+  	console.log(today, today.toLocaleString('default', { month: 'long' }))
+
+     function makeDailyPlot() {
+      Plotly.d3.csv("https://raw.githubusercontent.com/Gys19/privateData/main/CovidTrafficData.csv", function(data){ processData(data)});
+
+    };
+
+    function makeHourlyPlot() {
+      Plotly.d3.csv("https://raw.githubusercontent.com/Gys19/privateData/main/Hourly2weeks.csv", function(data){ processHourly(data) } );
+
+    };
+
+    function processData(allRows) {
+
+      var date = [], y1=[], y2=[], y3=[], y4=[], y5=[] ;
+
+      for (var i=0; i<allRows.length; i++) {
+
+        row = allRows[i];
+        // take note of time format yyyy-mm-dd hh:mm
+        date.push(row['date'] );
+        y1.push(row['now_1_p'] );
+        y2.push(row['now_2_p']);
+        y3.push(row['now_3_p']);
+        y4.push(row['now_4_p']);
+        y5.push(row['now_5_p']);
+      }
+      Y = [y1,y2,y3,y4,y5];
+
+      var today = [row['now_1_p'],row['now_2_p'],row['now_3_p'],row['now_4_p'],row['now_5_p']];
+      var days = allRows.length
+      // console.log(allRows[days-1])
+      y1y = allRows[days-1]['now_region_1']/allRows[days-2]['now_region_1']-1
+      y2y = allRows[days-1]['now_region_2']/allRows[days-2]['now_region_2']-1
+      y3y = allRows[days-1]['now_region_3']/allRows[days-2]['now_region_3']-1
+      y4y = allRows[days-1]['now_region_4']/allRows[days-2]['now_region_4']-1
+      y5y = allRows[days-1]['now_state']/allRows[days-2]['now_state']-1
+
+      var yesterday = [y1y,y2y,y3y,y4y,y5y];
+      // console.log(yesterday)
+
+  makeIndicator_today(today);
+  makeIndicator_yesterday(yesterday)
+  makePlotly(date, Y);
+  makeHeatmap(date,Y);
+
+};
+
+function makeIndicator_yesterday(value){
+
+  var cities = ['Knoxville','Chattanooga','Nashville','Memphis','Overall'];
+  data = [];
+  for (var i =0;i<cities.length;i++){
+
+  	data[i] = {
+  		type: "indicator", 
+  		mode: "delta", 
+  		value: value[i],
+  		delta: { reference: 0, valueformat: ".2%" },
+  		domain: 
+  		{ row: 0, column: i },
+  		title: {text: '<i>'+cities[i]+'</i>', font:{family:"Old Standard TT",size:20}}
+  	}
+  };
+  var layout = {
+  	width: 1000, height: 250,
+  	grid: { rows: 1, columns: 5, pattern: "independent" },
+      // margin: { t: 1, b: 0, l: 0, r: 0, pad :0 },
+      margin:{t:35},
+      title:{text: "Compare with one day ago",pad:{b:0},
+      font:{
+      	family:"Times New Roman",
+      	size: 18,
+      },
+      xanchor: 'left',
+      yanchor:'top',
+      yref:'paper',
+      x:0.1}
+    };
+    Plotly.newPlot('change2yes', data, layout,{displaylogo: false});
+  }
+
+
+  function makeHeatmap(x, Y){
+
+  	var dmax = new Date();
+  	var dmin = new Date();
+  	dmax.setMonth(dmax.getMonth()+2);
+  	dmin.setMonth(dmin.getMonth()-10);
+  // convert to 1 d firstly.
+  var cmin = Math.min(...[].concat(...Y)); 
+  var cmax = Math.max.apply(null, [].concat(...Y));
+  console.log(cmin,cmax, Math.abs((0-cmin)/(cmax-cmin)))
+  var colorscale=[
+  [0, '#e63900'],
+  [Math.abs((0-cmin)/(cmax-cmin)),'#ffffff'], 
+  [1, '#00ff00'],
+  ]
+  var data = [{
+  	z:Y,
+  	x:x,
+  	y:['Nashville','Memphis','Knoxville','Chattanooga','Overall'].reverse(),
+  	type:'heatmap',
+  	colorscale:colorscale,
+  	showscale:false,
+  	zhoverformat:',.2%',
+  },
+  ];
+  var layout={
+  	tickformat:  '%d %B (%a)\n %Y',
+  	showgrid: true,
+  	range:[dmin.getFullYear()+'-'+dmin.getMonth()+'-'+dmin.getDate(),dmax.getFullYear()+'-'+dmax.getMonth()+'-'+dmax.getDate()],
+  	xaxis:{
+  		showgrid:true,
+  	},
+  	yaxis:{
+  		tickfont:{family:'Time News Roman',size:15},
+  	},
+  	margin:{
+  		l:100,
+  	},
+  }
+
+  Plotly.newPlot('heatmap', data, layout, {displaylogo: false})
+}
+
+
+// https://plotly.com/javascript/indicator/
+function makeIndicator_today(value){
+
+  var cities = ['Knoxville','Chattanooga','Nashville','Memphis','Overall'];
+  data = [];
+  for (var i =0;i<cities.length;i++){
+
+    data[i] = {
+      type: "indicator", 
+      mode: "delta", 
+      value: value[i],
+      delta: { reference: 0, valueformat: ".2%" },
+      domain: 
+      { row: 0, column: i },
+      title: {text: '<i>'+cities[i]+'</i>', font:{family:"Old Standard TT",size:20}}
+    }
+  };
+  var layout = {
+    width: 1000, height: 250,
+    grid: { rows: 1, columns: 5, pattern: "independent" },
+      // margin: { t: 1, b: 0, l: 0, r: 0, pad :0 },
+      margin:{t:35},
+      title:{text: "Compare with the same day in 2019",pad:{b:0},
+      font:{
+        family:"Times New Roman",
+        size: 18,
+      },
+      xanchor: 'left',
+      yanchor:'top',
+      yref:'paper',
+      x:0.1}
+    };
+    Plotly.newPlot('change', data, layout,{displaylogo: false});
+  };
+
+  function makePlotly( x, Y ){
+    var plotDiv = document.getElementById("plot");
+    var rg1 = {
+      x: x, 
+      y: Y[0],
+      mode: 'lines+markers',
+      name: 'Knoxville',
+      type: 'scatter',
+      marker: {symbol: 'square-open',},
+      opacity: 0.4,
+    };
+    var rg2 = {
+      x: x,
+      y: Y[1],
+      mode: 'lines+markers',
+      name: 'Chattanooga',
+      type: 'scatter',
+      marker:{
+        symbol: 'diamond-open'
+      },
+      opacity: 0.4,
+    };
+    var rg3 = {
+      x: x,
+      y: Y[2],
+      mode: 'lines+markers',
+      name: 'Nashville',
+      type: 'scatter',
+      marker: {symbol: 'circle-open'},
+      opacity: 0.4,
+    };
+    var rg4 = {
+      x: x,
+      y: Y[3],
+      mode: 'lines+markers',
+      name: 'Memphis',
+      type: 'scatter',
+      marker: {symbol: 'triangle-up-open'},
+      opacity: 0.4,
+    };
+    var rg5 = {
+      x: x,
+      y: Y[4],
+      mode: 'lines+markers',
+      name: 'Overall',
+      type: 'scatter',
+    };
+
+    var dmax = new Date()
+    var dmin = new Date()
+    dmax.setMonth(dmax.getMonth()+2)
+    dmin.setMonth(dmin.getMonth()-10)
+
+    var layout = {
+      yaxis:{
+        title:{text:"Percent Change from 2019 Baseline",font:{family:"Times New Roman",size:18}},
+        tickformat: '%',
+        range: [-0.7,0.4],
+        showgrid: true,
+        tickmode: "linear", 
+        tick0: -0.7,
+        dtick: 0.1,
+        showgrid:true,
+      },
+      xaxis: {
+    // tickmode: "linear", 
+    // tick0: '2020-03-01',
+    // dtick: 90 * 24 * 60 * 10000,
+    tickformat:  '%d %B (%a)\n %Y',
+    showgrid: true,
+    range:[dmin.getFullYear()+'-'+dmin.getMonth()+'-'+dmin.getDate(),dmax.getFullYear()+'-'+dmax.getMonth()+'-'+dmax.getDate()]
+  },
+  legend: {
+    x: 0,
+    xanchor: 'left',
+    y: 0
+  },
+  title:{
+    text: 'Traffic Change During Covid Period, Tennessee',
+    font:{
+      family:"Times New Roman",
+      size: 25,
+    }
+  },
+}
+
+data = [rg1,rg2,rg3,rg4,rg5]
+
+Plotly.newPlot('dailyChange', data, layout,{displaylogo: false});
+};
+makeDailyPlot();
+
+
+function processHourly(allRows){
+
+  var date = [], y1=[], y2=[], y3=[], y4=[], y5=[] ;
+  var date = [], y11=[], y22=[], y33=[], y44=[], y55=[];
+
+  for (var i=0; i<allRows.length; i++) {
+
+
+    row = allRows[i];
+    // replace / to - in date
+    // date.push(row['date'].replace('\/','-').replace('\/','-') + ' ' + row['hour']);
+    date.push(row['datetime'])
+    y1.push(row['base_region_1'] );
+    y2.push(row['base_region_2']);
+    y3.push(row['base_region_3']);
+    y4.push(row['base_region_4']);
+    y5.push(row['base_state']);
+
+    y11.push(row['now_region_1'] );
+    y22.push(row['now_region_2']);
+    y33.push(row['now_region_3']);
+    y44.push(row['now_region_4']);
+    y55.push(row['now_state']);
+  }
+  Y1 = [y1,y2,y3,y4,y5]
+  Y2 = [y11,y22,y33,y44,y55]
+
+
+  function selCity(date,Y1,Y2){
+  // https://bobbyhadz.com/blog/javascript-select-onchange-get-value
+  var selectBox = document.getElementById("cities");
+  selectBox.addEventListener('change',function handleChange(event){
+    var sel = event.target.value;
+    makePlotly_hour(date, Y1, Y2, sel);
+  });
+}
+  // set default city
+  makePlotly_hour(date, Y1, Y2, 'Knoxville')  
+  // change to other city
+  selCity(date,Y1,Y2)
+}
+
+function makePlotly_hour(x, Y1, Y2, city){
+
+  var dict = {'Knoxville':0,'Chattanooga':1,'Nashville':2,'Memphis':3,'Overall':4};
+  var region_base = {
+    x: x,
+    y: Y1[dict[city]],
+    autobinx: false, 
+    type: "lines",
+    opacity: 0.5,
+    marker: {
+     color: 'blue',
+   },
+   name:'2019'
+ };
+
+ var region_now = {
+  x: x,
+  y: Y2[dict[city]],
+  autobinx: false, 
+  type: "lines",
+  opacity: 0.8,
+  marker: {
+   color: 'red',
+ },
+ name:'2022'
+};
+
+var layout = {
+  showlegend: true,
+  legend: {
+    x: 1,
+    xanchor: 'right',
+    y: 1
+  },
+  yaxis:{
+    range: [0,1800],
+    tickmode: "linear", 
+    tick0: 0,
+    dtick: 200,
+    title:{text:'Average Traffic/Lane',font:{family: "Times New Roman",size:18}},
+  },
+  xaxis:{
+    showgrid:true,
+    tickmode: "linear", 
+    tick0: x[0],
+    dtick: 7* 24 *60 * 10000,
+    tickformat:  '%H:%M  \n %d %B (%a)\n %Y',
+    font:{family:'Time News Roman',size:18}
+  },
+  title:{
+    text: 'Hourly Traffic Profile in '+ city + ', Tennessee',
+        font:{
+      family:"Times New Roman",
+      size: 25,
+    }
+  }
+}
+data = [region_base, region_now];
+Plotly.newPlot('hourly',data,layout,{displaylogo: false});
+
+};
+
+makeHourlyPlot();
+
+</script><body>
