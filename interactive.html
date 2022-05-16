@@ -1,17 +1,29 @@
 
 <head>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript", src="echarts/echarts.js"></script>
+      <script src="https://d3js.org/d3.v4.min.js"></script>
 </head>
 
 <body>
 
 	<div id='showtime' style="width: 60%; height: 10%;text-align: center;margin:auto;">
-		
 		<span style="font-size: 40px;">dada</span>
-
 	</div>
   <div id="change" style="width: 60%; height: 20%;text-align: center;margin:auto;"></div>
   <div id="change2yes" style="width: 60%; height: 20%;text-align: center;margin:auto;"></div>
+
+  <!-- 5/15/2022 -->
+<div id='main2' style="position: relative;margin-top: 5%;width: 100%;height: 250px;background-color: white;">
+<!--  <span style="text-align: center;position: relative;margin-left: 20%;margin-bottom: 20%;font-size: 20px;">Data Health</span> -->
+  <div id = 'level-1' style="position: absolute;width: 25%;height: 250px;background-color:white"></div>
+  <div id = 'level-2' style="position: absolute;margin-left: 25%;width: 25%;height: 250px;background-color:white"></div>
+  <div id = 'level-3' style="position: absolute;margin-left: 50%;width: 25%;height: 250px;background-color:white"></div>
+  <div id = 'level-4' style="position: relative;margin-left: 75%;width: 25%;height: 250px;background-color:white"></div>
+</div>
+
+
+
   <div id="dailyChange" style="width: 100%; height: 70%;"></div>
   <div id="heatmap" style="width: 100%; height: 70%;"> </div>
   <select name="cities" id="cities" style="margin:auto;align-content: center;">
@@ -22,6 +34,8 @@
     <option value="Overall">Overall</option>
   </select>
   <div id="hourly" style = "width:100%;height: 70%;"></div>
+
+
 
   <script type="text/javascript">
   	
@@ -396,4 +410,105 @@ Plotly.newPlot('hourly',data,layout,{displaylogo: false});
 
 makeHourlyPlot();
 
-</script><body>
+</script>
+
+<script type="text/javascript">
+missingData()
+function missingData() {
+  d3.csv("https://raw.githubusercontent.com/Gys19/privateData/main/datahealth.csv", function(data){ processMiss(data)});
+};
+function processMiss(data){
+
+  let r1=r2=r3=r4=r5=[]
+  for (var i=0; i<data.length;i++){
+    row = data[i]
+    r1.push(60-row['R1G #mins lost'])
+    r2.push(60-row['R2G #mins lost'])
+    r3.push(60-row['R3G #mins lost'])
+    r4.push(60-row['R4G #mins lost'])
+  }
+  var R = [r1,r2,r3,r4];
+  for (var r = 1; r<5;r++){
+    plotPolar(R,r)
+  }
+};
+
+function plotPolar(R,region){
+
+  console.log('level-'+region)
+  var chartDom = document.getElementById('level-'+region);
+  var myChart = echarts.init(chartDom);
+  var option;
+
+const hours = [
+'12a', '1a', '2a', '3a', '4a', '5a', '6a',
+'7a', '8a', '9a', '10a', '11a',
+'12p', '1p', '2p', '3p', '4p', '5p',
+'6p', '7p', '8p', '9p', '10p', '11p'
+];
+
+const days = [1,2,3,4,5,6];
+const regionName = ['Knoxville','Chattanooga','Nashville','Memphis'];
+data = R[region-1];
+
+option = {
+  title: {
+    text: regionName[region-1],
+    // top:'center',
+    left:'left',
+  },
+  polar: {},
+  tooltip: {
+    formatter: function (params) {
+
+      console.log('what',params.value)
+      return (
+        'Observed minutes: '+ params.value
+        );
+    }
+  },
+  angleAxis: {
+    type: 'category',
+    data: hours,
+    boundaryGap: false,
+    splitLine: {
+      show: true
+    },
+    axisLine: {
+      show: false
+    }
+  },
+  radiusAxis: {
+    type: 'value',
+    data: days,
+    max: 60,
+    min:0,
+    interval:5,
+    axisLine: {
+      show: false
+    },
+    axisLabel: {
+      rotate: 45
+    }
+  },
+  series: [
+  {
+    name: 'Data Heath',
+    type: 'bar',
+    coordinateSystem: 'polar',
+    symbolSize: function (val) {
+      return val[2] * 2;
+    },
+    data: data,
+    animationDelay: function (idx) {
+      return idx * 5;
+    }
+  }
+  ]
+};
+
+option && myChart.setOption(option);
+}
+</script>
+
+<body>
